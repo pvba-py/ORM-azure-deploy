@@ -1,0 +1,19 @@
+## .NET / C# build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+
+## Rider / VS Code
+.idea/
+.vscode/
+
+
+## OS files
+Thumbs.db
+.DS_Store
+
+# ClinicalBERT ONNX model files - keep local only# ClinicalBERTSystem/ORManagement.Api/Models/ClinicalBert/*.onnx.data
+ORManagementSystem/ORManagement.Api/Models/
