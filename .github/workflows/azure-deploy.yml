@@ -1,0 +1,58 @@
+name: Deploy OR Management System to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: ORManagementSystem/frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ORManagementSystem/frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: /api
+
+      - name: Copy frontend build to API wwwroot
+        run: |
+          rm -rf ORManagementSystem/ORManagement.Api/wwwroot
+          mkdir -p ORManagementSystem/ORManagement.Api/wwwroot
+          cp -r ORManagementSystem/frontend/dist/* ORManagementSystem/ORManagement.Api/wwwroot/
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore backend
+        working-directory: ORManagementSystem
+        run: dotnet restore
+
+      - name: Build backend
+        working-directory: ORManagementSystem
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish backend
+        run: dotnet publish ORManagementSystem/ORManagement.Api/ORManagement.Api.csproj --configuration Release --output ./publish
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: orm-management-demo-adithya
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: ./publish
