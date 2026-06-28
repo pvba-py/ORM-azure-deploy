@@ -13,17 +13,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Debug repository structure
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Root files:"
+          ls -la
+          echo "Project folder files:"
+          ls -la ORManagementSystem
+          echo "Frontend files:"
+          ls -la ORManagementSystem/ORManagement-Frontend
+          echo "API project files:"
+          ls -la ORManagementSystem/ORManagement.Api
+          echo "Find package.json:"
+          find . -name package.json
+          echo "Find csproj files:"
+          find . -name "*.csproj"
+          echo "Find solution files:"
+          find . -name "*.sln"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install frontend dependencies
-        working-directory: ORManagementSystem/frontend
+        working-directory: ORManagementSystem/ORManagement-Frontend
         run: npm ci
 
       - name: Build frontend
-        working-directory: ORManagementSystem/frontend
+        working-directory: ORManagementSystem/ORManagement-Frontend
         run: npm run build
         env:
           VITE_API_BASE_URL: /api
@@ -32,7 +51,7 @@ jobs:
         run: |
           rm -rf ORManagementSystem/ORManagement.Api/wwwroot
           mkdir -p ORManagementSystem/ORManagement.Api/wwwroot
-          cp -r ORManagementSystem/frontend/dist/* ORManagementSystem/ORManagement.Api/wwwroot/
+          cp -r ORManagementSystem/ORManagement-Frontend/dist/* ORManagementSystem/ORManagement.Api/wwwroot/
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -41,11 +60,11 @@ jobs:
 
       - name: Restore backend
         working-directory: ORManagementSystem
-        run: dotnet restore
+        run: dotnet restore ORManagementSystem.sln
 
       - name: Build backend
         working-directory: ORManagementSystem
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build ORManagementSystem.sln --configuration Release --no-restore
 
       - name: Publish backend
         run: dotnet publish ORManagementSystem/ORManagement.Api/ORManagement.Api.csproj --configuration Release --output ./publish
